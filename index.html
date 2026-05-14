@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BranchDesk — Bank CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090f; --sur:#0f1420; --sur2:#161d2e; --sur3:#1c2540;
+  --bdr:#1e2d4a; --bdr2:#253352;
+  --acc:#1d4ed8; --acc2:#3b82f6; --acc3:#60a5fa; --glow:rgba(59,130,246,.2);
+  --gold:#f59e0b; --grn:#10b981; --red:#ef4444; --pur:#8b5cf6; --org:#f97316;
+  --tx:#f0f4ff; --tx2:#8ea5cc; --tx3:#3d5178;
+  --r:12px; --rl:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+
+.screen{display:none;} .screen.on{display:block;}
+
+#screen-login{
+  min-height:100vh;display:none;align-items:stretch;background:var(--bg);position:relative;overflow:hidden;
+}
+#screen-login.on{display:flex;}
+#screen-login::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 15% 50%,rgba(29,78,216,.2) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 70% at 85% 20%,rgba(139,92,246,.12) 0%,transparent 55%);
+}
+#screen-login::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(59,130,246,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.035) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+.login-left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:64px 60px;position:relative;z-index:1;}
+.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-1px;margin-bottom:56px;}
+.login-logo span{color:var(--acc2);}
+.login-logo small{display:block;font-size:11px;color:var(--tx3);font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-top:5px;}
+.login-hl{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;line-height:1.1;letter-spacing:-1.5px;margin-bottom:18px;}
+.login-hl b{background:linear-gradient(135deg,var(--acc2),var(--acc3),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;}
+.login-desc{font-size:15px;color:var(--tx2);max-width:380px;line-height:1.75;margin-bottom:44px;}
+.login-feats{display:flex;flex-direction:column;gap:12px;}
+.lf{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--tx2);}
+.lf-ic{width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+
+.login-right{width:500px;display:flex;align-items:center;justify-content:center;padding:40px;position:relative;z-index:1;}
+.auth-box{
+  width:100%;max-width:420px;background:var(--sur);border:1px solid var(--bdr);border-radius:20px;
+  padding:36px;box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(59,130,246,.04);
+  animation:boxIn .4s cubic-bezier(.4,0,.2,1);
+}
+@keyframes boxIn{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:none;}}
+.auth-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+.auth-sub{font-size:13px;color:var(--tx2);margin-bottom:26px;}
+
+.cred-hint{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;}
+.cred-hint-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--acc3);font-weight:700;margin-bottom:8px;}
+.cred-rows{display:flex;flex-direction:column;gap:5px;}
+.cred-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;}
+.cred-row .cr-role{display:flex;align-items:center;gap:6px;}
+.cred-row .cr-ids{color:var(--tx2);font-family:monospace;font-size:10px;}
+.use-btn{background:rgba(59,130,246,.15);border:none;border-radius:4px;color:var(--acc3);font-size:9px;font-weight:700;padding:2px 6px;cursor:pointer;letter-spacing:.5px;font-family:'DM Sans',sans-serif;}
+.use-btn:hover{background:rgba(59,130,246,.3);}
+
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:13px;}
+.fg label{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;}
+.fg input,.fg select{
+  background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;
+  padding:11px 14px;color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;
+  outline:none;transition:border-color .15s,box-shadow .15s;width:100%;
+}
+.fg input:focus,.fg select:focus{border-color:var(--acc2);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.fg select option{background:var(--sur);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:9px 12px;font-size:12px;color:#f87171;margin-bottom:12px;display:none;}
+.abtn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s;margin-top:4px;letter-spacing:.3px;}
+.abtn:hover{background:var(--acc2);box-shadow:0 4px 24px var(--glow);}
+.aswitch{text-align:center;margin-top:16px;font-size:12px;color:var(--tx3);}
+.aswitch a{color:var(--acc2);cursor:pointer;font-weight:600;}
+.aswitch a:hover{text-decoration:underline;}
+
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;}
+.rt{border:2px solid var(--bdr);border-radius:12px;padding:13px 10px;cursor:pointer;text-align:center;transition:all .15s;position:relative;}
+.rt:hover{border-color:var(--bdr2);background:var(--sur2);}
+.rt.sel{border-color:var(--acc2);background:rgba(59,130,246,.08);}
+.rt .rt-check{position:absolute;top:7px;right:7px;width:15px;height:15px;border-radius:50%;background:var(--acc2);color:#fff;font-size:8px;display:none;align-items:center;justify-content:center;}
+.rt.sel .rt-check{display:flex;}
+.rt .rt-ic{font-size:20px;margin-bottom:5px;}
+.rt .rt-lb{font-size:11px;font-weight:700;font-family:'Syne',sans-serif;}
+.rt .rt-ds{font-size:10px;color:var(--tx3);margin-top:1px;}
+
+#screen-app{display:none;min-height:100vh;flex-direction:column;}
+#screen-app.on{display:flex;}
+
+.topbar{height:56px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 22px;gap:12px;position:sticky;top:0;z-index:100;}
+.tb-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:-.5px;margin-right:4px;}
+.tb-logo span{color:var(--acc2);}
+.tb-div{width:1px;height:20px;background:var(--bdr);flex-shrink:0;}
+.pill{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:.3px;}
+.pill-branch{background:rgba(59,130,246,.1);color:var(--acc3);border:1px solid rgba(59,130,246,.2);}
+.pill-emp{background:rgba(16,185,129,.1);color:#34d399;border:1px solid rgba(16,185,129,.2);}
+.pill-mgr{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+.pill-ceo{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.25);}
+.pill-adm{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto;}
+.nt{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--tx2);white-space:nowrap;transition:all .15s;}
+.nt:hover{background:var(--sur2);color:var(--tx);}
+.nt.on{background:rgba(59,130,246,.15);color:var(--acc2);}
+.nt .nb{background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;min-width:15px;text-align:center;}
+
+.tb-right{display:flex;align-items:center;gap:9px;margin-left:auto;}
+.uc{display:flex;align-items:center;gap:8px;}
+.uc-av{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:10px;color:#fff;flex-shrink:0;}
+.uc-nm{font-size:12px;font-weight:500;}
+.logout{background:none;border:1px solid var(--bdr);border-radius:8px;padding:5px 11px;color:var(--tx2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.logout:hover{background:var(--sur2);color:var(--red);border-color:rgba(239,68,68,.3);}
+
+.app-body{flex:1;padding:22px 26px;max-width:1440px;width:100%;margin:0 auto;}
+.view{display:none;} .view.on{display:block;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px;}
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc.bl::after{background:linear-gradient(90deg,var(--acc),var(--acc2));}
+.sc.gr::after{background:linear-gradient(90deg,#059669,var(--grn));}
+.sc.go::after{background:linear-gradient(90deg,#d97706,var(--gold));}
+.sc.re::after{background:linear-gradient(90deg,#dc2626,var(--red));}
+.sc.pu::after{background:linear-gradient(90deg,#7c3aed,var(--pur));}
+.sl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;}
+.sv{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin:5px 0 3px;}
+.ss{font-size:11px;color:var(--tx3);}
+.si{position:absolute;right:14px;top:14px;font-size:22px;opacity:.1;}
+
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:16px;}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+
+table{width:100%;border-collapse:collapse;}
+thead th{padding:9px 13px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;border-bottom:1px solid var(--bdr);}
+tbody tr{border-bottom:1px solid rgba(30,45,74,.5);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--sur2);}
+tbody td{padding:10px 13px;font-size:13px;color:var(--tx2);vertical-align:middle;}
+td.nm{color:var(--tx);font-weight:500;}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.bg-bl{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
+.bg-gr{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.2);}
+.bg-go{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+.bg-re{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+.bg-gy{background:rgba(100,116,139,.12);color:#94a3b8;border:1px solid rgba(100,116,139,.18);}
+.bg-or{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.2);}
+.bg-pu{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.2);}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.btn-p{background:var(--acc);color:#fff;} .btn-p:hover{background:var(--acc2);box-shadow:0 0 14px var(--glow);}
+.btn-g{background:transparent;color:var(--tx2);border-color:var(--bdr);} .btn-g:hover{background:var(--sur2);color:var(--tx);}
+.btn-d{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.2);} .btn-d:hover{background:rgba(239,68,68,.2);}
+.btn-print{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.25);} .btn-print:hover{background:rgba(139,92,246,.25);}
+.btn-sm{padding:5px 9px;font-size:11px;}
+.search-bar{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:6px 11px;flex:1;max-width:240px;}
+.search-bar input{background:none;border:none;outline:none;color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;}
+.search-bar input::placeholder{color:var(--tx3);}
+.fsel{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:6px 9px;color:var(--tx2);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;}
+
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center;}
+.mo.on{display:flex;}
+.m-box{background:var(--sur);border:1px solid var(--bdr);border-radius:18px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;animation:mIn .2s ease;}
+@keyframes mIn{from{opacity:0;transform:translateY(18px) scale(.97);}to{opacity:1;transform:none;}}
+.m-hd{padding:18px 22px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.m-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;}
+.mx{background:none;border:none;color:var(--tx3);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;transition:all .15s;line-height:1;}
+.mx:hover{background:var(--sur2);color:var(--tx);}
+.m-bd{padding:18px 22px;}
+.m-ft{padding:13px 22px 18px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:9px;}
+.fg2{display:flex;flex-direction:column;gap:6px;}
+.fg2 label{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.4px;}
+.fg2 input,.fg2 select,.fg2 textarea{background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:9px 12px;color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;width:100%;}
+.fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{border-color:var(--acc2);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+.fg2 select option{background:var(--sur);}
+.fg2 textarea{resize:vertical;min-height:72px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.full{grid-column:1/-1;}
+
+.st-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.so{padding:11px 8px;border-radius:10px;border:2px solid var(--bdr);cursor:pointer;transition:all .15s;text-align:center;}
+.so:hover{border-color:var(--bdr2);background:var(--sur2);}
+.so.sel{border-color:var(--acc2);background:rgba(59,130,246,.1);}
+.so .soi{font-size:18px;margin-bottom:4px;}
+.so .sol{font-size:11px;font-weight:700;}
+
+.dpo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);z-index:200;}
+.dpo.on{display:block;}
+.dp{position:fixed;right:0;top:0;bottom:0;width:420px;background:var(--sur);border-left:1px solid var(--bdr);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.dp.on{transform:none;}
+.dp-hd{padding:17px 19px 13px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.dp-nm{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;}
+.dp-mt{color:var(--tx3);font-size:11px;margin-top:2px;}
+.dp-bd{flex:1;overflow-y:auto;padding:16px 19px;}
+.dps{margin-bottom:18px;}
+.dps-t{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx3);font-weight:700;margin-bottom:9px;}
+.dpr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+.dpk{font-size:12px;color:var(--tx3);}
+.dpv{font-size:12px;color:var(--tx);font-weight:500;text-align:right;max-width:58%;}
+.tl{display:flex;flex-direction:column;}
+.tli{display:flex;gap:10px;position:relative;}
+.tli:not(:last-child)::before{content:'';position:absolute;left:12px;top:25px;bottom:-4px;width:1px;background:var(--bdr);}
+.tld{width:25px;height:25px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:4px;}
+.tld.blue{background:rgba(59,130,246,.15);color:var(--acc2);border:1px solid rgba(59,130,246,.25);}
+.tld.green{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.25);}
+.tld.gold{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+.tld.red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+.tld.gray{background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.25);}
+.tlc{padding:3px 0 15px;}
+.tlt{font-size:12px;font-weight:500;}
+.tld2{font-size:10px;color:var(--tx3);margin-top:1px;}
+.tln{font-size:11px;color:var(--tx2);margin-top:3px;font-style:italic;}
+.dp-ft{padding:13px 19px;border-top:1px solid var(--bdr);display:flex;gap:7px;}
+.dp-ft .btn{flex:1;justify-content:center;}
+
+.rem-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
+.rch{padding:9px 13px;border-radius:8px 8px 0 0;border:1px solid var(--bdr);border-bottom:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.rch.w{background:rgba(239,68,68,.07);color:#f87171;}
+.rch.m{background:rgba(245,158,11,.07);color:#fbbf24;}
+.rch.y{background:rgba(16,185,129,.07);color:#34d399;}
+.rcb{border:1px solid var(--bdr);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;}
+.ri{padding:11px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;gap:8px;cursor:pointer;transition:background .1s;}
+.ri:last-child{border-bottom:none;}
+.ri:hover{background:var(--sur2);}
+.rid{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.rid.ov{background:var(--red);box-shadow:0 0 6px var(--red);}
+.rid.td{background:var(--gold);box-shadow:0 0 6px var(--gold);}
+.rid.ok{background:var(--grn);}
+.ri-nm{font-size:13px;font-weight:500;}
+.ri-sb{font-size:11px;color:var(--tx3);margin-top:1px;}
+.ri-du{font-size:10px;color:var(--tx2);margin-top:2px;}
+
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+.cc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;}
+.cc-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:13px;}
+.bc{display:flex;flex-direction:column;gap:9px;}
+.br{display:flex;align-items:center;gap:9px;}
+.bl{font-size:11px;color:var(--tx2);width:100px;flex-shrink:0;}
+.bt{flex:1;height:7px;background:var(--sur2);border-radius:4px;overflow:hidden;}
+.bf{height:100%;border-radius:4px;}
+.bco{font-size:11px;color:var(--tx3);width:22px;text-align:right;flex-shrink:0;}
+.dw{display:flex;align-items:center;gap:18px;}
+.li{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tx2);}
+.ld{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+
+.auc{background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:11px;transition:all .15s;}
+.auc:hover{border-color:var(--bdr2);}
+.auc-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;}
+.auc-nm{font-size:13px;font-weight:600;}
+.auc-role{font-size:11px;color:var(--tx3);margin-top:2px;}
+.auc-br{font-size:10px;color:var(--tx3);margin-top:2px;}
+
+.es{text-align:center;padding:34px 16px;color:var(--tx3);}
+.es .ei{font-size:30px;opacity:.35;margin-bottom:9px;}
+.es .et{font-size:13px;}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:11px 16px;font-size:13px;color:var(--tx);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;gap:9px;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);}
+.toast.on{transform:none;opacity:1;}
+
+/* Access denied badge */
+.access-notice{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:8px 12px;font-size:12px;color:#fbbf24;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+@media print{
+  body{background:#fff !important;color:#000 !important;}
+  #screen-login,#screen-app .topbar,#screen-app .nav-tabs,
+  .btn,.logout,.search-bar,.fsel,#view-visits,#view-reminders,#view-admin{display:none !important;}
+  .app-body{padding:0 !important;}
+  #view-dashboard{display:block !important;}
+  .card{border:1px solid #ccc !important;background:#fff !important;page-break-inside:avoid;}
+  .sc{background:#fff !important;border:1px solid #ccc !important;}
+  .sv{color:#000 !important;} .sl,.ss{color:#555 !important;}
+  .badge,.pill{border:1px solid #999 !important;color:#000 !important;background:#f5f5f5 !important;}
+  tbody td,thead th{color:#000 !important;border-bottom:1px solid #ddd !important;}
+  .print-header{display:block !important;}
+  .no-print{display:none !important;}
+  @page{margin:1.5cm;size:A4;}
+}
+.print-header{display:none;margin-bottom:20px;}
+.print-header h1{font-size:22px;font-weight:800;margin-bottom:4px;}
+.print-header p{font-size:12px;color:#555;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px;}
+
+@media(max-width:860px){
+  .login-left{display:none;}
+  .login-right{width:100%;padding:24px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .chart-row,.rem-cols{grid-template-columns:1fr;}
+  .dp{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="on">
+  <div class="login-left">
+    <div class="login-logo">Branch<span>Desk</span><small>Bank Visit & Loan CRM</small></div>
+    <div class="login-hl">Every visit.<br>Every follow-up.<br><b>All in one place.</b></div>
+    <div class="login-desc">Track client visits, manage loan follow-ups with weekly/monthly reminders, and give your CEO complete visibility across all branches — all secured by role-based access.</div>
+    <div class="login-feats">
+      <div class="lf"><div class="lf-ic">👥</div>Track every client visit with full details</div>
+      <div class="lf"><div class="lf-ic">🔔</div>Auto reminders — weekly, monthly, yearly</div>
+      <div class="lf"><div class="lf-ic">📊</div>CEO-level dashboard across all branches</div>
+      <div class="lf"><div class="lf-ic">🔐</div>Strict per-user data isolation by role</div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="auth-box" id="box-login">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your BranchDesk account</div>
+
+      <div class="cred-hint">
+        <div class="cred-hint-title">🔑 Demo Accounts — Click USE to auto-fill</div>
+        <div class="cred-rows">
+          <div class="cred-row">
+            <div class="cr-role"><span class="badge bg-pu">CEO</span> Vikram Shah</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="cr-ids">9000000001 / ceo123</span>
+              <button class="use-btn" onclick="fillLogin('9000000001','ceo123')">USE</button>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cr-role"><span class="badge bg-re">Admin</span> Anita Nair</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="cr-ids">9000000002 / admin123</span>
+              <button class="use-btn" onclick="fillLogin('9000000002','admin123')">USE</button>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cr-role"><span class="badge bg-go">Manager</span> Rajesh Kumar</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="cr-ids">9000000003 / mgr123</span>
+              <button class="use-btn" onclick="fillLogin('9000000003','mgr123')">USE</button>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cr-role"><span class="badge bg-gr">Officer</span> Preethi Rao</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="cr-ids">9000000004 / emp123</span>
+              <button class="use-btn" onclick="fillLogin('9000000004','emp123')">USE</button>
+            </div>
+          </div>
+          <div class="cred-row">
+            <div class="cr-role"><span class="badge bg-gr">Officer</span> Arjun Mehta</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="cr-ids">9000000005 / emp456</span>
+              <button class="use-btn" onclick="fillLogin('9000000005','emp456')">USE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="err" id="l-err"></div>
+      <div class="fg"><label>Mobile Number</label><input id="l-mob" type="tel" placeholder="10-digit mobile" maxlength="10"></div>
+      <div class="fg"><label>Password</label><input id="l-pw" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="abtn" onclick="doLogin()">Sign In →</button>
+      <div class="aswitch">New employee? <a onclick="showReg()">Create account</a></div>
+    </div>
+
+    <div class="auth-box" id="box-reg" style="display:none;">
+      <div class="auth-title">Create Account</div>
+      <div class="auth-sub">Register as a bank employee</div>
+      <div class="err" id="r-err"></div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px;">Choose Your Designation</div>
+        <div class="role-grid">
+          <div class="rt" id="rt-employee" onclick="pickRole('employee')">
+            <div class="rt-check">✓</div>
+            <div class="rt-ic">👤</div>
+            <div class="rt-lb">Relationship Officer</div>
+            <div class="rt-ds">Add & manage your visits</div>
+          </div>
+          <div class="rt" id="rt-manager" onclick="pickRole('manager')">
+            <div class="rt-check">✓</div>
+            <div class="rt-ic">🏦</div>
+            <div class="rt-lb">Branch Manager</div>
+            <div class="rt-ds">Branch overview</div>
+          </div>
+        </div>
+        <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:9px;padding:10px 13px;font-size:12px;color:#f87171;">
+          🔐 <strong>CEO</strong> and <strong>Admin</strong> accounts can only be created by the system administrator.
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fg"><label>Full Name</label><input id="r-nm" placeholder="Your name"></div>
+        <div class="fg"><label>Mobile</label><input id="r-mob" type="tel" maxlength="10" placeholder="10-digit"></div>
+      </div>
+      <div class="fg" style="margin-top:10px;"><label>Password</label><input id="r-pw" type="password" placeholder="Create strong password"></div>
+      <div class="fg" style="margin-top:10px;"><label>Branch</label>
+        <select id="r-br">
+          <option value="">— Select Branch —</option>
+          <option>Andheri East</option><option>Bandra West</option><option>Borivali North</option>
+          <option>Thane Central</option><option>Dadar</option><option>Mulund</option>
+          <option>Vashi</option><option>Pune Main</option>
+        </select>
+      </div>
+      <button class="abtn" onclick="doReg()" style="margin-top:16px;">Create Account →</button>
+      <div class="aswitch">Already registered? <a onclick="showLogin()">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screen-app">
+  <nav class="topbar">
+    <div class="tb-logo">Branch<span>Desk</span></div>
+    <div class="tb-div"></div>
+    <div class="pill pill-branch" id="nav-branch">—</div>
+    <div class="pill" id="nav-role-pill">—</div>
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="tb-right">
+      <div class="uc">
+        <div class="uc-av" id="nav-av">?</div>
+        <div class="uc-nm" id="nav-nm">—</div>
+      </div>
+      <button class="logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="app-body">
+
+    <!-- VISITS (employee/manager/admin) -->
+    <div class="view" id="view-visits">
+      <div class="stats-row">
+        <div class="sc bl"><div class="si">👥</div><div class="sl">My Visits</div><div class="sv" id="s-total">0</div><div class="ss">All time</div></div>
+        <div class="sc gr"><div class="si">✅</div><div class="sl">Approved</div><div class="sv" id="s-appr">0</div><div class="ss">Loan disbursed</div></div>
+        <div class="sc go"><div class="si">⏳</div><div class="sl">Pending F/U</div><div class="sv" id="s-pend">0</div><div class="ss">Need callback</div></div>
+        <div class="sc re"><div class="si">📅</div><div class="sl">Overdue</div><div class="sv" id="s-over">0</div><div class="ss">Missed follow-up</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title" id="visits-card-title">My Client Visits</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="search-bar"><span style="opacity:.4;font-size:13px;">🔍</span><input id="v-src" placeholder="Name or phone…" oninput="renderVisits()"></div>
+            <select class="fsel" id="v-st" onchange="renderVisits()">
+              <option value="">All Status</option>
+              <option>New Visit</option><option>Called</option><option>Interested</option>
+              <option>Loan Approved</option><option>Declined</option><option>Not Reachable</option>
+            </select>
+            <select class="fsel" id="v-pu" onchange="renderVisits()">
+              <option value="">All Purpose</option>
+              <option>Home Loan</option><option>Personal Loan</option><option>Business Loan</option>
+              <option>Car Loan</option><option>Education Loan</option><option>Other</option>
+            </select>
+            <button class="btn btn-p" id="btn-add-visit" onclick="openAddM()">＋ Add Visit</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table><thead><tr>
+            <th>Client</th><th>Mobile</th><th>Purpose</th><th>Amount</th>
+            <th>Visit Date</th><th>Next Follow-up</th><th>Status</th><th>Actions</th>
+          </tr></thead><tbody id="v-tb"></tbody></table>
+          <div class="es" id="v-es" style="display:none;"><div class="ei">📋</div><div class="et">No visits found.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REMINDERS -->
+    <div class="view" id="view-reminders">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">My Follow-up Reminders</div><div style="font-size:12px;color:var(--tx3);margin-top:2px;">Only your own clients — grouped by frequency</div></div>
+        <div style="display:flex;gap:7px;"><span class="badge bg-re">🔴 Overdue</span><span class="badge bg-go">🟡 Today</span><span class="badge bg-gr">🟢 Upcoming</span></div>
+      </div>
+      <div class="rem-cols">
+        <div><div class="rch w">🔴 Weekly (7d)</div><div class="rcb" id="rem-w"></div></div>
+        <div><div class="rch m">🟡 Monthly (30d)</div><div class="rcb" id="rem-m"></div></div>
+        <div><div class="rch y">🟢 Yearly</div><div class="rcb" id="rem-y"></div></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD (Manager/CEO/Admin) -->
+    <div class="view" id="view-dashboard">
+      <div class="print-header">
+        <h1>BranchDesk — Dashboard Report</h1>
+        <p id="print-date"></p>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;" class="no-print">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;" id="dash-title">Dashboard</div>
+          <div style="font-size:12px;color:var(--tx3);margin-top:2px;" id="dash-sub">Overview</div>
+        </div>
+        <div style="display:flex;gap:8px;" class="no-print">
+          <button class="btn btn-print" onclick="doPrint()">🖨️ Print / Export PDF</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="sc bl"><div class="si">🏦</div><div class="sl">Total Visits</div><div class="sv" id="c-total">0</div><div class="ss" id="c-total-sub">All branches</div></div>
+        <div class="sc gr"><div class="si">💰</div><div class="sl">Loans Approved</div><div class="sv" id="c-appr">0</div><div class="ss">Conversion: <span id="c-rate">0%</span></div></div>
+        <div class="sc go"><div class="si">📞</div><div class="sl">Active F/U</div><div class="sv" id="c-fu">0</div><div class="ss">Pending callbacks</div></div>
+        <div class="sc re"><div class="si">❌</div><div class="sl">Declined</div><div class="sv" id="c-dec">0</div><div class="ss">Not converted</div></div>
+      </div>
+      <div class="chart-row">
+        <div class="cc"><div class="cc-t">Loan Purpose Breakdown</div><div class="bc" id="d-chart"></div></div>
+        <div class="cc"><div class="cc-t">Status Overview</div>
+          <div class="dw"><svg viewBox="0 0 120 120" width="110" height="110" id="d-donut"></svg><div id="d-leg" style="display:flex;flex-direction:column;gap:6px;"></div></div>
+        </div>
+      </div>
+      <!-- Branch table — CEO/Admin only -->
+      <div class="card" id="d-branch-card">
+        <div class="card-hd"><div class="card-title">Branch Performance</div></div>
+        <table><thead><tr><th>Branch</th><th>Visits</th><th>Approved</th><th>Pending</th><th>Declined</th><th>Conversion</th></tr></thead>
+        <tbody id="d-branches"></tbody></table>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-hd">
+          <div class="card-title" id="d-clients-title">All Client Records</div>
+          <div style="display:flex;gap:8px;" class="no-print">
+            <div class="search-bar" style="max-width:200px;"><span style="opacity:.4;font-size:12px;">🔍</span><input id="d-src" placeholder="Search…" oninput="renderDashboard()"></div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table><thead><tr><th>Client</th><th>Branch</th><th>Officer</th><th>Purpose</th><th>Amount</th><th>Status</th><th>Visit Date</th></tr></thead>
+          <tbody id="d-clients"></tbody></table>
+          <div class="es" id="d-es" style="display:none;"><div class="ei">📊</div><div class="et">No records.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="view" id="view-admin">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Admin — User Management</div>
+          <div style="font-size:12px;color:var(--tx3);margin-top:2px;">Create CEO / Admin accounts · Manage all employees</div>
+        </div>
+        <button class="btn btn-p" onclick="openCUModal()">＋ Create CEO / Admin / Manager</button>
+      </div>
+      <div id="adm-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px;"></div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="view" id="view-analytics">
+      <div class="card" style="padding:40px;text-align:center;color:var(--tx3);">
+        <div style="font-size:38px;margin-bottom:14px;">📈</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--tx);margin-bottom:8px;">Advanced Analytics</div>
+        <div style="font-size:14px;">Detailed charts, staff performance trends, and monthly loan disbursement data — coming next.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD/EDIT VISIT MODAL -->
+<div class="mo" id="m-add">
+  <div class="m-box">
+    <div class="m-hd"><div class="m-title" id="m-add-title">Add New Client Visit</div><button class="mx" onclick="closeAddM()">✕</button></div>
+    <div class="m-bd">
+      <div class="fgrid">
+        <div class="fg2"><label>Full Name *</label><input id="f-nm" placeholder="Client name"></div>
+        <div class="fg2"><label>Mobile *</label><input id="f-mob" type="tel" maxlength="10" placeholder="10-digit"></div>
+        <div class="fg2"><label>Email</label><input id="f-em" type="email" placeholder="optional"></div>
+        <div class="fg2"><label>Visit Date</label><input id="f-dt" type="date"></div>
+        <div class="fg2"><label>Loan Purpose *</label>
+          <select id="f-pu"><option value="">Select</option><option>Home Loan</option><option>Personal Loan</option><option>Business Loan</option><option>Car Loan</option><option>Education Loan</option><option>Other</option></select>
+        </div>
+        <div class="fg2"><label>Amount (₹)</label><input id="f-am" type="number" placeholder="e.g. 500000"></div>
+        <div class="fg2"><label>Follow-up Frequency</label>
+          <select id="f-fu"><option value="weekly">Weekly (7 days)</option><option value="monthly">Monthly (30 days)</option><option value="yearly">Yearly (365 days)</option></select>
+        </div>
+        <div class="fg2"><label>Status</label>
+          <select id="f-st"><option>New Visit</option><option>Called</option><option>Interested</option><option>Loan Approved</option><option>Declined</option><option>Not Reachable</option></select>
+        </div>
+        <div class="fg2 full"><label>Notes / Requirements</label><textarea id="f-nt" placeholder="Client requirements, income details, documents pending…"></textarea></div>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn btn-g" onclick="closeAddM()">Cancel</button><button class="btn btn-p" onclick="saveVisit()">Save Visit</button></div>
+  </div>
+</div>
+
+<!-- STATUS UPDATE MODAL -->
+<div class="mo" id="m-status">
+  <div class="m-box" style="width:400px;">
+    <div class="m-hd"><div class="m-title">Update — <span id="su-nm"></span></div><button class="mx" onclick="closeStM()">✕</button></div>
+    <div class="m-bd">
+      <div class="st-grid">
+        <div class="so" id="so-Called" onclick="pickSt('Called')"><div class="soi">📞</div><div class="sol">Called</div></div>
+        <div class="so" id="so-Interested" onclick="pickSt('Interested')"><div class="soi">⭐</div><div class="sol">Interested</div></div>
+        <div class="so" id="so-Loan Approved" onclick="pickSt('Loan Approved')"><div class="soi">✅</div><div class="sol">Approved</div></div>
+        <div class="so" id="so-Declined" onclick="pickSt('Declined')"><div class="soi">❌</div><div class="sol">Declined</div></div>
+        <div class="so" id="so-Not Reachable" onclick="pickSt('Not Reachable')"><div class="soi">📵</div><div class="sol">No Answer</div></div>
+        <div class="so" id="so-New Visit" onclick="pickSt('New Visit')"><div class="soi">🔄</div><div class="sol">Re-open</div></div>
+      </div>
+      <div class="fg2"><label>Call Notes</label><textarea id="su-nt" placeholder="What was discussed?" style="min-height:66px;"></textarea></div>
+    </div>
+    <div class="m-ft"><button class="btn btn-g" onclick="closeStM()">Cancel</button><button class="btn btn-p" onclick="saveSt()">Update Status</button></div>
+  </div>
+</div>
+
+<!-- CREATE PRIV USER MODAL -->
+<div class="mo" id="m-cu">
+  <div class="m-box" style="width:440px;">
+    <div class="m-hd"><div class="m-title">Create Privileged Account</div><button class="mx" onclick="closeCUModal()">✕</button></div>
+    <div class="m-bd">
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 12px;font-size:12px;color:#fbbf24;margin-bottom:14px;">
+        🔐 Only admin can create these accounts. Choose role, branch and set credentials below.
+      </div>
+      <div class="err" id="cu-err"></div>
+      <div class="fgrid">
+        <div class="fg2"><label>Full Name *</label><input id="cu-nm" placeholder="Full name"></div>
+        <div class="fg2"><label>Mobile *</label><input id="cu-mob" type="tel" maxlength="10" placeholder="10-digit"></div>
+        <div class="fg2"><label>Password *</label><input id="cu-pw" type="password" placeholder="Set password"></div>
+        <div class="fg2"><label>Role *</label>
+          <select id="cu-role"><option value="ceo">CEO</option><option value="admin">Admin</option><option value="manager">Branch Manager</option></select>
+        </div>
+        <div class="fg2 full"><label>Branch</label>
+          <select id="cu-br">
+            <option value="All Branches">All Branches (for CEO/Admin)</option>
+            <option>Andheri East</option><option>Bandra West</option><option>Borivali North</option>
+            <option>Thane Central</option><option>Dadar</option><option>Mulund</option><option>Vashi</option><option>Pune Main</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn btn-g" onclick="closeCUModal()">Cancel</button><button class="btn btn-p" onclick="createPriv()">Create Account</button></div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="dpo" id="dpo" onclick="closeDP()"></div>
+<div class="dp" id="dp">
+  <div class="dp-hd">
+    <div><div class="dp-nm" id="dp-nm"></div><div class="dp-mt" id="dp-mt"></div></div>
+    <button class="mx" onclick="closeDP()">✕</button>
+  </div>
+  <div class="dp-bd">
+    <div class="dps"><div class="dps-t">Contact & Visit</div><div id="dp-ct"></div></div>
+    <div class="dps"><div class="dps-t">Loan Details</div><div id="dp-ln"></div></div>
+    <div class="dps"><div class="dps-t">Activity Timeline</div><div class="tl" id="dp-tl"></div></div>
+  </div>
+  <div class="dp-ft" id="dp-ft">
+    <button class="btn btn-g btn-sm" onclick="editFromDP()">✏️ Edit</button>
+    <button class="btn btn-p btn-sm" onclick="updFromDP()">📞 Update Call</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="t-ic">✅</span><span id="t-msg"></span></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════
+const ROLE_LABELS = {employee:'Relationship Officer',manager:'Branch Manager',ceo:'Chief Executive Officer',admin:'Administrator'};
+const ROLE_COLORS = {employee:'linear-gradient(135deg,#059669,#10b981)',manager:'linear-gradient(135deg,#d97706,#f59e0b)',ceo:'linear-gradient(135deg,#7c3aed,#8b5cf6)',admin:'linear-gradient(135deg,#dc2626,#ef4444)'};
+const ROLE_PILL   = {employee:'pill-emp',manager:'pill-mgr',ceo:'pill-ceo',admin:'pill-adm'};
+const SB_MAP = {'New Visit':'bg-bl','Called':'bg-gy','Interested':'bg-go','Loan Approved':'bg-gr','Declined':'bg-re','Not Reachable':'bg-or'};
+const TL_CLR = {blue:'blue',green:'green',gold:'gold',red:'red',gray:'gray'};
+
+// ══════════════════════════════════════════════════════
+//  STORAGE
+// ══════════════════════════════════════════════════════
+function lu(){ return JSON.parse(localStorage.getItem('bd_users')||'[]'); }
+function su(u){ localStorage.setItem('bd_users',JSON.stringify(u)); }
+function lc(){ return JSON.parse(localStorage.getItem('bd_clients')||'[]'); }
+function sc(c){ localStorage.setItem('bd_clients',JSON.stringify(c)); }
+
+// ══════════════════════════════════════════════════════
+//  SEED DATA
+// ══════════════════════════════════════════════════════
+(function(){
+  if(!lu().length){
+    su([
+      {id:1,name:'Vikram Shah',mobile:'9000000001',password:'ceo123',role:'ceo',branch:'All Branches',by:'system'},
+      {id:2,name:'Anita Nair',mobile:'9000000002',password:'admin123',role:'admin',branch:'All Branches',by:'system'},
+      {id:3,name:'Rajesh Kumar',mobile:'9000000003',password:'mgr123',role:'manager',branch:'Andheri East',by:'admin'},
+      {id:4,name:'Preethi Rao',mobile:'9000000004',password:'emp123',role:'employee',branch:'Andheri East',by:'admin'},
+      {id:5,name:'Arjun Mehta',mobile:'9000000005',password:'emp456',role:'employee',branch:'Bandra West',by:'admin'},
+    ]);
+  }
+  if(!lc().length){
+    const t=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];};
+    sc([
+      // Preethi Rao (id:4) records — Andheri East
+      {id:1,name:'Priya Sharma',mobile:'9876543210',email:'priya@email.com',visitDate:t(-10),purpose:'Home Loan',amount:'4500000',followup:'weekly',status:'Interested',notes:'₹45L home loan. 30% down. Salary ₹80k.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-10),note:'Home loan enquiry'},{type:'gold',icon:'📞',title:'Called — Interested',time:t(-3),note:'Documents in process'}],nextFollowup:t(-1),branch:'Andheri East',empId:4},
+      {id:2,name:'Ramesh Patel',mobile:'9123456780',email:'',visitDate:t(-20),purpose:'Business Loan',amount:'1000000',followup:'monthly',status:'Loan Approved',notes:'Grocery wholesale, 5yr firm.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-20),note:'Business expansion'},{type:'green',icon:'✅',title:'Loan Approved',time:t(-5),note:'₹10L at 12.5% p.a.'}],nextFollowup:t(25),branch:'Andheri East',empId:4},
+      {id:3,name:'Sunita Verma',mobile:'9988776655',email:'sunita@gmail.com',visitDate:t(-5),purpose:'Personal Loan',amount:'200000',followup:'weekly',status:'New Visit',notes:'Medical emergency loan.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-5),note:'Urgent personal loan'}],nextFollowup:t(2),branch:'Andheri East',empId:4},
+      // Arjun Mehta (id:5) records — Bandra West
+      {id:4,name:'Aakash Singh',mobile:'9012345678',email:'',visitDate:t(-15),purpose:'Car Loan',amount:'800000',followup:'weekly',status:'Not Reachable',notes:'Hyundai Creta.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-15),note:'Car loan'},{type:'red',icon:'📵',title:'Not Reachable',time:t(-8),note:'Phone off'}],nextFollowup:t(-2),branch:'Bandra West',empId:5},
+      {id:5,name:'Meena Joshi',mobile:'8765432109',email:'meena@gmail.com',visitDate:t(-30),purpose:'Education Loan',amount:'1200000',followup:'monthly',status:'Declined',notes:'MBA abroad. Declined — interest rate.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-30),note:'Education loan'},{type:'red',icon:'❌',title:'Declined',time:t(-20),note:'Found better rate'}],nextFollowup:t(5),branch:'Bandra West',empId:5},
+      {id:6,name:'Devraj Malhotra',mobile:'7845236910',email:'',visitDate:t(-3),purpose:'Business Loan',amount:'2500000',followup:'weekly',status:'Interested',notes:'Restaurant chain expansion.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-3),note:'₹25L business expansion'}],nextFollowup:t(4),branch:'Bandra West',empId:5},
+      // Rajesh Kumar (id:3) record — manager can add too
+      {id:7,name:'Nisha Gupta',mobile:'9834512678',email:'nisha@email.com',visitDate:t(-7),purpose:'Home Loan',amount:'6000000',followup:'monthly',status:'Interested',notes:'Premium segment client.',timeline:[{type:'blue',icon:'👤',title:'Client visited',time:t(-7),note:'₹60L home loan'}],nextFollowup:t(23),branch:'Andheri East',empId:3},
+    ]);
+  }
+})();
+
+// ══════════════════════════════════════════════════════
+//  SESSION
+// ══════════════════════════════════════════════════════
+let CU = JSON.parse(sessionStorage.getItem('bd_sess')||'null');
+
+// ══════════════════════════════════════════════════════
+//  ROLE HELPERS
+// ══════════════════════════════════════════════════════
+const isCEO   = ()=> CU && CU.role==='ceo';
+const isAdmin  = ()=> CU && CU.role==='admin';
+const isMgr    = ()=> CU && CU.role==='manager';
+const isEmp    = ()=> CU && CU.role==='employee';
+const canSeeAll= ()=> isCEO() || isAdmin();
+
+/**
+ * Returns the clients the current user is allowed to see:
+ *   CEO / Admin  → all clients
+ *   Manager      → only clients in their own branch
+ *   Employee     → ONLY clients they personally added (empId === CU.id)
+ */
+function myclients(){
+  const all = lc();
+  if(canSeeAll()) return all;
+  if(isMgr())     return all.filter(c => c.branch === CU.branch);
+  // employee — strict own records only
+  return all.filter(c => c.empId === CU.id);
+}
+
+/**
+ * Can the current user edit/delete a specific client record?
+ * Only the employee who created it (empId match). Managers & CEO/Admin: view-only.
+ */
+function canEdit(client){
+  return isEmp() && client.empId === CU.id;
+}
+
+// ══════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════
+let regRole = '';
+function pickRole(r){
+  regRole=r;
+  document.querySelectorAll('.rt').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('rt-'+r).classList.add('sel');
+}
+function fillLogin(mob,pw){
+  document.getElementById('l-mob').value=mob;
+  document.getElementById('l-pw').value=pw;
+}
+function showReg(){
+  document.getElementById('box-login').style.display='none';
+  document.getElementById('box-reg').style.display='block';
+  regRole=''; document.querySelectorAll('.rt').forEach(el=>el.classList.remove('sel'));
+  hideErr('l-err');
+}
+function showLogin(){
+  document.getElementById('box-reg').style.display='none';
+  document.getElementById('box-login').style.display='block';
+  hideErr('r-err');
+}
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.style.display='block';}
+function hideErr(id){const e=document.getElementById(id);e.style.display='none';e.textContent='';}
+
+function doLogin(){
+  const mob=document.getElementById('l-mob').value.trim();
+  const pw=document.getElementById('l-pw').value;
+  hideErr('l-err');
+  if(!mob||!pw){showErr('l-err','Enter mobile and password.');return;}
+  const u=lu().find(x=>x.mobile===mob&&x.password===pw);
+  if(!u){showErr('l-err','Invalid mobile or password.');return;}
+  sessionStorage.setItem('bd_sess',JSON.stringify(u));
+  CU=u; boot();
+}
+function doReg(){
+  const nm=document.getElementById('r-nm').value.trim();
+  const mob=document.getElementById('r-mob').value.trim();
+  const pw=document.getElementById('r-pw').value;
+  const br=document.getElementById('r-br').value;
+  hideErr('r-err');
+  if(!regRole){showErr('r-err','Please select your designation.');return;}
+  if(!nm||!mob||!pw||!br){showErr('r-err','All fields are required.');return;}
+  if(mob.length!==10||isNaN(mob)){showErr('r-err','Enter valid 10-digit mobile.');return;}
+  const users=lu();
+  if(users.find(x=>x.mobile===mob)){showErr('r-err','Mobile already registered.');return;}
+  users.push({id:Date.now(),name:nm,mobile:mob,password:pw,role:regRole,branch:br,by:'self'});
+  su(users);
+  toast('Account created! Sign in now.','✅');
+  showLogin();
+}
+function doLogout(){
+  sessionStorage.removeItem('bd_sess'); CU=null;
+  document.getElementById('screen-app').classList.remove('on');
+  document.getElementById('screen-login').classList.add('on');
+  showLogin();
+}
+
+// ══════════════════════════════════════════════════════
+//  BOOT / TABS
+// ══════════════════════════════════════════════════════
+const TABS = {
+  employee:[{id:'visits',lbl:'My Visits',ic:'👥'},{id:'reminders',lbl:'Reminders',ic:'🔔',badge:true}],
+  manager: [{id:'visits',lbl:'Branch Visits',ic:'👥'},{id:'reminders',lbl:'Reminders',ic:'🔔',badge:true},{id:'dashboard',lbl:'Branch Report',ic:'📊'}],
+  ceo:     [{id:'dashboard',lbl:'CEO Dashboard',ic:'📊'},{id:'analytics',lbl:'Analytics',ic:'📈'}],
+  admin:   [{id:'admin',lbl:'User Management',ic:'👤'},{id:'dashboard',lbl:'Dashboard',ic:'📊'},{id:'visits',lbl:'All Visits',ic:'👥'}],
+};
+
+function boot(){
+  document.getElementById('screen-login').classList.remove('on');
+  const app=document.getElementById('screen-app');
+  app.style.display='flex';
+
+  document.getElementById('nav-branch').textContent=CU.branch;
+  const rp=document.getElementById('nav-role-pill');
+  rp.className='pill '+ROLE_PILL[CU.role];
+  rp.textContent=ROLE_LABELS[CU.role];
+  const av=document.getElementById('nav-av');
+  av.style.background=ROLE_COLORS[CU.role];
+  av.textContent=CU.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('nav-nm').textContent=CU.name.split(' ')[0];
+
+  const tabs=TABS[CU.role]||TABS.employee;
+  document.getElementById('nav-tabs').innerHTML=tabs.map(t=>
+    `<div class="nt" id="tab-${t.id}" onclick="nav('${t.id}')">${t.ic} ${t.lbl}${t.badge?` <span class="nb" id="bdg-${t.id}">0</span>`:''}</div>`
+  ).join('');
+
+  // Dashboard personalisation
+  if(isCEO()){
+    document.getElementById('dash-title').textContent='CEO Dashboard — All Branches';
+    document.getElementById('dash-sub').textContent='Real-time overview across the entire bank';
+    document.getElementById('c-total-sub').textContent='All branches';
+  } else if(isAdmin()){
+    document.getElementById('dash-title').textContent='Admin Dashboard — All Branches';
+    document.getElementById('dash-sub').textContent='Full visibility across the entire bank';
+    document.getElementById('c-total-sub').textContent='All branches';
+  } else {
+    document.getElementById('dash-title').textContent='Branch Report — '+CU.branch;
+    document.getElementById('dash-sub').textContent='Performance overview for your branch';
+    document.getElementById('c-total-sub').textContent='Your branch';
+  }
+
+  // Visits view personalisation
+  if(isEmp()){
+    document.getElementById('visits-card-title').textContent='My Client Visits';
+    document.getElementById('s-total').closest('.sc').querySelector('.sl').textContent='My Visits';
+  } else if(isMgr()){
+    document.getElementById('visits-card-title').textContent='Branch Client Visits ('+CU.branch+')';
+    document.getElementById('s-total').closest('.sc').querySelector('.sl').textContent='Branch Visits';
+  } else {
+    document.getElementById('visits-card-title').textContent='All Client Visits';
+    document.getElementById('s-total').closest('.sc').querySelector('.sl').textContent='Total Visits';
+  }
+
+  // Hide Add Visit button for CEO (view only)
+  if(isCEO()) document.getElementById('btn-add-visit').style.display='none';
+
+  nav(isCEO()?'dashboard':isAdmin()?'admin':'visits');
+}
+
+let CURV=null;
+function nav(id){
+  if(CURV){document.getElementById('view-'+CURV)?.classList.remove('on');document.getElementById('tab-'+CURV)?.classList.remove('on');}
+  CURV=id;
+  document.getElementById('view-'+id)?.classList.add('on');
+  document.getElementById('tab-'+id)?.classList.add('on');
+  if(id==='visits')    renderVisits();
+  if(id==='reminders') renderReminders();
+  if(id==='dashboard') renderDashboard();
+  if(id==='admin')     renderAdmin();
+}
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+const fmt=d=>{if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});};
+const inr=n=>{if(!n)return'—';return'₹'+Number(n).toLocaleString('en-IN');};
+const dago=d=>{const df=Math.round((new Date()-new Date(d+'T00:00:00'))/86400000);if(df===0)return'Today';if(df<0)return`In ${-df}d`;return`${df}d ago`;};
+const isOv=d=>d&&new Date(d+'T00:00:00')<new Date(new Date().toDateString());
+const isTd=d=>d&&d===new Date().toISOString().split('T')[0];
+
+// ══════════════════════════════════════════════════════
+//  VISITS
+// ══════════════════════════════════════════════════════
+let editId=null,detId=null,stTargId=null,selStat=null;
+
+function renderVisits(){
+  const src=(document.getElementById('v-src')?.value||'').toLowerCase();
+  const sf=document.getElementById('v-st')?.value||'';
+  const pf=document.getElementById('v-pu')?.value||'';
+
+  const mine=myclients();
+
+  const data=mine.filter(c=>
+    (!src||c.name.toLowerCase().includes(src)||c.mobile.includes(src))
+    &&(!sf||c.status===sf)&&(!pf||c.purpose===pf)
+  );
+
+  // Stats always from the user's allowed set
+  document.getElementById('s-total').textContent=mine.length;
+  document.getElementById('s-appr').textContent=mine.filter(c=>c.status==='Loan Approved').length;
+  document.getElementById('s-pend').textContent=mine.filter(c=>!['Loan Approved','Declined'].includes(c.status)).length;
+  const ov=mine.filter(c=>isOv(c.nextFollowup)&&!['Loan Approved','Declined'].includes(c.status)).length;
+  document.getElementById('s-over').textContent=ov;
+  const bdgEl=document.getElementById('bdg-reminders');
+  if(bdgEl) bdgEl.textContent=ov;
+
+  const tb=document.getElementById('v-tb');
+  const es=document.getElementById('v-es');
+  if(!data.length){tb.innerHTML='';es.style.display='block';return;}
+  es.style.display='none';
+
+  const users=lu();
+  tb.innerHTML=data.sort((a,b)=>new Date(b.visitDate)-new Date(a.visitDate)).map(c=>{
+    const ov2=isOv(c.nextFollowup)&&!['Loan Approved','Declined'].includes(c.status);
+    const td2=isTd(c.nextFollowup);
+    const fc=ov2?'color:var(--red);font-weight:600;':td2?'color:var(--gold);font-weight:600;':'';
+    const owned=canEdit(c);
+    // Managers and CEO: view only in visits list; employees only see own records
+    const showActions=owned; // only the creating employee can edit/delete
+    const emp=users.find(u=>u.id===c.empId);
+    return `<tr onclick="openDP(${c.id})">
+      <td class="nm">${c.name}${!owned&&!isEmp()?`<br><span style="font-size:10px;color:var(--tx3);">${emp?emp.name:''}</span>`:''}
+      </td>
+      <td>${c.mobile}</td>
+      <td><span class="badge bg-bl" style="font-size:9px;">${c.purpose}</span></td>
+      <td>${inr(c.amount)}</td>
+      <td>${fmt(c.visitDate)}</td>
+      <td style="${fc}">${c.nextFollowup?fmt(c.nextFollowup)+`<br><span style="font-size:10px;opacity:.6;">${dago(c.nextFollowup)}</span>`:'—'}</td>
+      <td><span class="badge ${SB_MAP[c.status]||'bg-gy'}">${c.status}</span></td>
+      <td onclick="event.stopPropagation()">
+        ${showActions?`<div style="display:flex;gap:5px;">
+          <button class="btn btn-g btn-sm" onclick="openStM(${c.id})">📞</button>
+          <button class="btn btn-g btn-sm" onclick="openEditM(${c.id})">✏️</button>
+          <button class="btn btn-d btn-sm" onclick="delC(${c.id})">🗑</button>
+        </div>`:
+        `<span style="font-size:10px;color:var(--tx3);">View only</span>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddM(){
+  if(isCEO()){toast('CEO account cannot add visits','⚠️');return;}
+  editId=null;
+  document.getElementById('m-add-title').textContent='Add New Client Visit';
+  ['f-nm','f-mob','f-em','f-nt','f-am'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-dt').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-pu').value='';
+  document.getElementById('f-fu').value='weekly';
+  document.getElementById('f-st').value='New Visit';
+  document.getElementById('m-add').classList.add('on');
+}
+function openEditM(id){
+  const c=lc().find(x=>x.id===id);if(!c)return;
+  // Only the owner can edit
+  if(!canEdit(c)){toast('You can only edit your own records','⚠️');return;}
+  editId=id;
+  document.getElementById('m-add-title').textContent='Edit Client Visit';
+  document.getElementById('f-nm').value=c.name;
+  document.getElementById('f-mob').value=c.mobile;
+  document.getElementById('f-em').value=c.email||'';
+  document.getElementById('f-dt').value=c.visitDate;
+  document.getElementById('f-pu').value=c.purpose;
+  document.getElementById('f-am').value=c.amount||'';
+  document.getElementById('f-fu').value=c.followup||'weekly';
+  document.getElementById('f-st').value=c.status;
+  document.getElementById('f-nt').value=c.notes||'';
+  document.getElementById('m-add').classList.add('on');
+  closeDP();
+}
+function closeAddM(){document.getElementById('m-add').classList.remove('on');}
+
+function saveVisit(){
+  const nm=document.getElementById('f-nm').value.trim();
+  const mob=document.getElementById('f-mob').value.trim();
+  const pu=document.getElementById('f-pu').value;
+  if(!nm||!mob||!pu){toast('Fill Name, Mobile & Purpose','⚠️');return;}
+  const fu=document.getElementById('f-fu').value;
+  const dt=document.getElementById('f-dt').value;
+  let nf=null;
+  if(dt){
+    const d=new Date(dt+'T00:00:00');
+    if(fu==='weekly')d.setDate(d.getDate()+7);
+    else if(fu==='monthly')d.setMonth(d.getMonth()+1);
+    else d.setFullYear(d.getFullYear()+1);
+    nf=d.toISOString().split('T')[0];
+  }
+  let clients=lc();
+  if(editId){
+    const i=clients.findIndex(x=>x.id===editId);
+    // Security: must still own it
+    if(!canEdit(clients[i])){toast('Permission denied','⚠️');return;}
+    clients[i]={...clients[i],name:nm,mobile:mob,email:document.getElementById('f-em').value,
+      visitDate:dt,purpose:pu,amount:document.getElementById('f-am').value,
+      followup:fu,status:document.getElementById('f-st').value,
+      notes:document.getElementById('f-nt').value,nextFollowup:nf};
+    toast('Client updated','✅');
+  } else {
+    clients.push({
+      id:Date.now(),name:nm,mobile:mob,email:document.getElementById('f-em').value,
+      visitDate:dt,purpose:pu,amount:document.getElementById('f-am').value,
+      followup:fu,status:document.getElementById('f-st').value,
+      notes:document.getElementById('f-nt').value,nextFollowup:nf,
+      timeline:[{type:'blue',icon:'👤',title:'Client visited branch',time:dt,note:document.getElementById('f-nt').value||'Walk-in enquiry'}],
+      branch:CU.branch,
+      empId:CU.id   // always the current user's ID
+    });
+    toast('Visit added!','✅');
+  }
+  sc(clients); closeAddM(); renderVisits();
+}
+
+function delC(id){
+  const c=lc().find(x=>x.id===id);
+  if(!c||!canEdit(c)){toast('You can only delete your own records','⚠️');return;}
+  if(!confirm('Delete this client record?'))return;
+  sc(lc().filter(c=>c.id!==id)); renderVisits(); toast('Record deleted','🗑');
+}
+
+// ══════════════════════════════════════════════════════
+//  STATUS MODAL — only record owner or their manager can update
+// ══════════════════════════════════════════════════════
+function openStM(id){
+  const c=lc().find(x=>x.id===id);if(!c)return;
+  // Employees: only their own records
+  if(isEmp()&&c.empId!==CU.id){toast('You can only update your own records','⚠️');return;}
+  stTargId=id;
+  document.getElementById('su-nm').textContent=c.name;
+  document.getElementById('su-nt').value='';
+  selStat=c.status;
+  document.querySelectorAll('.so').forEach(e=>e.classList.remove('sel'));
+  const el=document.getElementById('so-'+c.status);if(el)el.classList.add('sel');
+  document.getElementById('m-status').classList.add('on');
+}
+function closeStM(){document.getElementById('m-status').classList.remove('on');}
+function pickSt(s){
+  selStat=s;
+  document.querySelectorAll('.so').forEach(e=>e.classList.remove('sel'));
+  const el=document.getElementById('so-'+s);if(el)el.classList.add('sel');
+}
+function saveSt(){
+  if(!selStat){toast('Select a status','⚠️');return;}
+  let clients=lc();
+  const i=clients.findIndex(c=>c.id===stTargId);
+  const c=clients[i];
+  // Re-check ownership
+  if(isEmp()&&c.empId!==CU.id){toast('Permission denied','⚠️');return;}
+  const nt=document.getElementById('su-nt').value.trim();
+  const tlM={Called:'gray',Interested:'gold','Loan Approved':'green',Declined:'red','Not Reachable':'red','New Visit':'blue'};
+  const icM={Called:'📞',Interested:'⭐','Loan Approved':'✅',Declined:'❌','Not Reachable':'📵','New Visit':'🔄'};
+  const today=new Date().toISOString().split('T')[0];
+  const d=new Date(today+'T00:00:00');
+  if(c.followup==='weekly')d.setDate(d.getDate()+7);
+  else if(c.followup==='monthly')d.setMonth(d.getMonth()+1);
+  else d.setFullYear(d.getFullYear()+1);
+  if(!c.timeline)c.timeline=[];
+  c.timeline.push({type:tlM[selStat]||'blue',icon:icM[selStat]||'📝',title:selStat,time:today,note:nt});
+  c.status=selStat;
+  if(!['Loan Approved','Declined'].includes(selStat))c.nextFollowup=d.toISOString().split('T')[0];
+  clients[i]=c; sc(clients);
+  closeStM(); renderVisits();
+  if(detId===stTargId) openDP(stTargId);
+  toast('Status → '+selStat,'✅');
+}
+
+// ══════════════════════════════════════════════════════
+//  DETAIL PANEL
+// ══════════════════════════════════════════════════════
+function openDP(id){
+  const c=lc().find(x=>x.id===id);if(!c)return;
+  // Access check — can this user see this record at all?
+  const visible=myclients().find(x=>x.id===id);
+  if(!visible){toast('Access denied','🔐');return;}
+  detId=id;
+  const emp=lu().find(u=>u.id===c.empId);
+  document.getElementById('dp-nm').textContent=c.name;
+  document.getElementById('dp-mt').textContent=c.mobile+(c.email?' · '+c.email:'')+(emp?' · Added by '+emp.name:'');
+  const ov=isOv(c.nextFollowup)&&!['Loan Approved','Declined'].includes(c.status);
+  const td=isTd(c.nextFollowup);
+  document.getElementById('dp-ct').innerHTML=`
+    <div class="dpr"><span class="dpk">Visit Date</span><span class="dpv">${fmt(c.visitDate)}</span></div>
+    <div class="dpr"><span class="dpk">Branch</span><span class="dpv">${c.branch||'—'}</span></div>
+    <div class="dpr"><span class="dpk">Follow-up</span><span class="dpv" style="text-transform:capitalize;">${c.followup}</span></div>
+    <div class="dpr"><span class="dpk">Next Call</span><span class="dpv" style="${ov?'color:var(--red);':td?'color:var(--gold);':''}">${fmt(c.nextFollowup)}${c.nextFollowup?' · '+dago(c.nextFollowup):''}</span></div>
+    <div class="dpr"><span class="dpk">Status</span><span class="dpv"><span class="badge ${SB_MAP[c.status]||'bg-gy'}">${c.status}</span></span></div>`;
+  document.getElementById('dp-ln').innerHTML=`
+    <div class="dpr"><span class="dpk">Purpose</span><span class="dpv">${c.purpose}</span></div>
+    <div class="dpr"><span class="dpk">Amount</span><span class="dpv">${inr(c.amount)}</span></div>
+    ${c.notes?`<div class="dpr" style="flex-direction:column;gap:3px;"><span class="dpk">Notes</span><span style="font-size:11px;color:var(--tx2);line-height:1.5;">${c.notes}</span></div>`:''}`;
+  const tl=c.timeline||[];
+  document.getElementById('dp-tl').innerHTML=tl.map(t=>`
+    <div class="tli"><div class="tld ${TL_CLR[t.type]||'blue'}">${t.icon}</div>
+    <div class="tlc"><div class="tlt">${t.title}</div><div class="tld2">${fmt(t.time)}</div>${t.note?`<div class="tln">"${t.note}"</div>`:''}</div></div>
+  `).join('')||'<div style="font-size:12px;color:var(--tx3);">No activity yet.</div>';
+
+  // Show action buttons only if user owns the record (employee) or is a manager
+  const owned=canEdit(c);
+  const dpft=document.getElementById('dp-ft');
+  if(isCEO()||isAdmin()||(!owned&&isEmp())){
+    dpft.style.display='none';
+  } else if(isMgr()){
+    // Manager: can update status for any branch record, but cannot edit/delete
+    dpft.style.display='flex';
+    dpft.innerHTML=`<button class="btn btn-p btn-sm" style="flex:1;justify-content:center;" onclick="updFromDP()">📞 Update Status</button>`;
+  } else {
+    dpft.style.display='flex';
+    dpft.innerHTML=`
+      <button class="btn btn-g btn-sm" onclick="editFromDP()">✏️ Edit</button>
+      <button class="btn btn-p btn-sm" onclick="updFromDP()">📞 Update Call</button>`;
+  }
+
+  document.getElementById('dpo').classList.add('on');
+  document.getElementById('dp').classList.add('on');
+}
+function closeDP(){document.getElementById('dpo').classList.remove('on');document.getElementById('dp').classList.remove('on');detId=null;}
+function editFromDP(){if(detId)openEditM(detId);}
+function updFromDP(){if(detId)openStM(detId);}
+
+// ══════════════════════════════════════════════════════
+//  REMINDERS — ALWAYS only own records for employee/manager
+// ══════════════════════════════════════════════════════
+function renderReminders(){
+  // For reminders, employees and managers only see their OWN records
+  let active;
+  if(canSeeAll()){
+    active=lc().filter(c=>!['Loan Approved','Declined'].includes(c.status));
+  } else if(isMgr()){
+    // Manager sees only their own records in reminders (not their whole branch)
+    active=lc().filter(c=>c.empId===CU.id&&!['Loan Approved','Declined'].includes(c.status));
+  } else {
+    active=lc().filter(c=>c.empId===CU.id&&!['Loan Approved','Declined'].includes(c.status));
+  }
+
+  const urg=c=>isOv(c.nextFollowup)?{cls:'ov',lbl:'Overdue'}:isTd(c.nextFollowup)?{cls:'td',lbl:'Today'}:{cls:'ok',lbl:c.nextFollowup?dago(c.nextFollowup):'—'};
+  function rcol(list,id){
+    const el=document.getElementById(id);
+    if(!list.length){el.innerHTML='<div class="es" style="padding:14px;"><div class="ei" style="font-size:20px;">✅</div><div class="et" style="font-size:11px;">All clear</div></div>';return;}
+    el.innerHTML=list.sort((a,b)=>new Date(a.nextFollowup||'9999')-new Date(b.nextFollowup||'9999')).map(c=>{
+      const u=urg(c);
+      return `<div class="ri" onclick="openDP(${c.id})">
+        <div class="rid ${u.cls}"></div>
+        <div style="flex:1;"><div class="ri-nm">${c.name}</div><div class="ri-sb">${c.purpose} · ${inr(c.amount)}</div>
+        <div class="ri-du">📅 ${fmt(c.nextFollowup)} · <span style="${u.cls==='ov'?'color:var(--red);':u.cls==='td'?'color:var(--gold);':''}">${u.lbl}</span></div></div>
+        <button class="btn btn-p btn-sm" style="flex-shrink:0;" onclick="event.stopPropagation();openStM(${c.id})">📞</button>
+      </div>`;
+    }).join('');
+  }
+  rcol(active.filter(c=>c.followup==='weekly'),'rem-w');
+  rcol(active.filter(c=>c.followup==='monthly'),'rem-m');
+  rcol(active.filter(c=>c.followup==='yearly'),'rem-y');
+}
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD (CEO/Admin: all; Manager: own branch)
+// ══════════════════════════════════════════════════════
+function renderDashboard(){
+  const src=(document.getElementById('d-src')?.value||'').toLowerCase();
+  const data=myclients(); // respects role
+
+  const total=data.length;
+  const appr=data.filter(c=>c.status==='Loan Approved').length;
+  const fu=data.filter(c=>!['Loan Approved','Declined'].includes(c.status)).length;
+  const dec=data.filter(c=>c.status==='Declined').length;
+  document.getElementById('c-total').textContent=total;
+  document.getElementById('c-appr').textContent=appr;
+  document.getElementById('c-fu').textContent=fu;
+  document.getElementById('c-dec').textContent=dec;
+  document.getElementById('c-rate').textContent=total?Math.round(appr/total*100)+'%':'0%';
+  document.getElementById('print-date').textContent='Generated on '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})+'  ·  '+ROLE_LABELS[CU.role]+': '+CU.name;
+
+  // Purpose bar chart
+  const pu={};data.forEach(c=>{pu[c.purpose]=(pu[c.purpose]||0)+1;});
+  const mx=Math.max(...Object.values(pu),1);
+  const pc={'Home Loan':'#2563eb','Personal Loan':'#7c3aed','Business Loan':'#f59e0b','Car Loan':'#10b981','Education Loan':'#f97316','Other':'#64748b'};
+  document.getElementById('d-chart').innerHTML=Object.entries(pu).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+    `<div class="br"><div class="bl">${k}</div><div class="bt"><div class="bf" style="width:${v/mx*100}%;background:${pc[k]||'#64748b'};"></div></div><div class="bco">${v}</div></div>`
+  ).join('');
+
+  // Donut
+  const sts={'Loan Approved':0,'Interested':0,'Called':0,'New Visit':0,'Declined':0,'Not Reachable':0};
+  data.forEach(c=>{if(sts[c.status]!==undefined)sts[c.status]++;});
+  const dc={'Loan Approved':'#10b981','Interested':'#f59e0b','Called':'#64748b','New Visit':'#2563eb','Declined':'#ef4444','Not Reachable':'#f97316'};
+  const tot2=Object.values(sts).reduce((a,b)=>a+b,0)||1;
+  let ca=-Math.PI/2,paths='';
+  Object.entries(sts).forEach(([k,v])=>{
+    if(!v)return;
+    const ang=(v/tot2)*Math.PI*2,r=45,cx=60,cy=60;
+    const x1=cx+r*Math.cos(ca),y1=cy+r*Math.sin(ca);
+    ca+=ang;
+    const x2=cx+r*Math.cos(ca),y2=cy+r*Math.sin(ca);
+    paths+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${ang>Math.PI?1:0},1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${dc[k]}" opacity=".9"/>`;
+  });
+  paths+=`<circle cx="60" cy="60" r="28" fill="var(--sur)"/><text x="60" y="60" text-anchor="middle" dy="4" fill="var(--tx)" font-size="18" font-family="Syne,sans-serif" font-weight="800">${total}</text>`;
+  document.getElementById('d-donut').innerHTML=paths;
+  document.getElementById('d-leg').innerHTML=Object.entries(sts).filter(([,v])=>v>0).map(([k,v])=>
+    `<div class="li"><div class="ld" style="background:${dc[k]};"></div>${k}: <strong style="color:var(--tx);margin-left:2px;">${v}</strong></div>`).join('');
+
+  // Branch table — only CEO/Admin see cross-branch breakdown
+  const branchCard=document.getElementById('d-branch-card');
+  if(canSeeAll()){
+    branchCard.style.display='block';
+    const brs=[...new Set(lc().map(c=>c.branch||'Unknown'))];
+    document.getElementById('d-branches').innerHTML=brs.map(br=>{
+      const bd=lc().filter(c=>c.branch===br);
+      const ba=bd.filter(c=>c.status==='Loan Approved').length;
+      const bp=bd.filter(c=>!['Loan Approved','Declined'].includes(c.status)).length;
+      const bdec=bd.filter(c=>c.status==='Declined').length;
+      const rate=bd.length?Math.round(ba/bd.length*100):0;
+      return `<tr><td class="nm">${br}</td><td style="color:var(--tx);font-weight:500;">${bd.length}</td><td><span class="badge bg-gr">${ba}</span></td><td><span class="badge bg-go">${bp}</span></td><td><span class="badge bg-re">${bdec}</span></td><td><strong style="color:${rate>=50?'var(--grn)':rate>=30?'var(--gold)':'var(--red)'};">${rate}%</strong></td></tr>`;
+    }).join('');
+  } else {
+    branchCard.style.display='none';
+  }
+
+  // Client records table — scoped to the user's allowed set
+  const users=lu();
+  document.getElementById('d-clients-title').textContent=
+    canSeeAll()?'All Client Records':
+    isMgr()?'Branch Client Records ('+CU.branch+')':'My Client Records';
+
+  const filtered=data.filter(c=>!src||c.name.toLowerCase().includes(src)||c.mobile.includes(src));
+  const es=document.getElementById('d-es');
+  const tb=document.getElementById('d-clients');
+  if(!filtered.length){tb.innerHTML='';es.style.display='block';return;}
+  es.style.display='none';
+  tb.innerHTML=filtered.sort((a,b)=>new Date(b.visitDate)-new Date(a.visitDate)).map(c=>{
+    const emp=users.find(u=>u.id===c.empId);
+    return `<tr onclick="openDP(${c.id})">
+      <td class="nm">${c.name}</td>
+      <td><span class="badge bg-bl" style="font-size:9px;">${c.branch||'—'}</span></td>
+      <td>${emp?emp.name:'—'}</td>
+      <td>${c.purpose}</td><td>${inr(c.amount)}</td>
+      <td><span class="badge ${SB_MAP[c.status]||'bg-gy'}">${c.status}</span></td>
+      <td>${fmt(c.visitDate)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  PRINT
+// ══════════════════════════════════════════════════════
+function doPrint(){
+  document.getElementById('print-date').textContent='Generated on '+new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})+'  ·  '+ROLE_LABELS[CU.role]+': '+CU.name;
+  window.print();
+}
+
+// ══════════════════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════════════════
+function renderAdmin(){
+  const users=lu();
+  document.getElementById('adm-grid').innerHTML=users.map(u=>`
+    <div class="auc">
+      <div class="auc-av" style="background:${ROLE_COLORS[u.role]||'#334155'};">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+      <div style="flex:1;">
+        <div class="auc-nm">${u.name}</div>
+        <div class="auc-role" style="margin-top:3px;"><span class="badge ${u.role==='ceo'?'bg-pu':u.role==='admin'?'bg-re':u.role==='manager'?'bg-go':'bg-gr'}">${ROLE_LABELS[u.role]}</span></div>
+        <div class="auc-br">📍 ${u.branch} · 📱 ${u.mobile}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+        ${u.id!==CU.id?`<button class="btn btn-d btn-sm" onclick="delUser(${u.id})">🗑</button>`:`<span style="font-size:10px;color:var(--tx3);">You</span>`}
+      </div>
+    </div>`).join('');
+}
+function openCUModal(){
+  hideErr('cu-err');
+  ['cu-nm','cu-mob','cu-pw'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cu-role').value='ceo';
+  document.getElementById('cu-br').value='All Branches';
+  document.getElementById('m-cu').classList.add('on');
+}
+function closeCUModal(){document.getElementById('m-cu').classList.remove('on');}
+function createPriv(){
+  const nm=document.getElementById('cu-nm').value.trim();
+  const mob=document.getElementById('cu-mob').value.trim();
+  const pw=document.getElementById('cu-pw').value;
+  const role=document.getElementById('cu-role').value;
+  const br=document.getElementById('cu-br').value;
+  hideErr('cu-err');
+  if(!nm||!mob||!pw){showErr('cu-err','All fields required.');return;}
+  if(mob.length!==10||isNaN(mob)){showErr('cu-err','Valid 10-digit mobile required.');return;}
+  const users=lu();
+  if(users.find(u=>u.mobile===mob)){showErr('cu-err','Mobile already registered.');return;}
+  users.push({id:Date.now(),name:nm,mobile:mob,password:pw,role,branch:br,by:'admin:'+CU.name});
+  su(users); closeCUModal(); renderAdmin();
+  toast(ROLE_LABELS[role]+' account created!','✅');
+}
+function delUser(id){
+  if(id===CU.id){toast("Can't delete your own account",'⚠️');return;}
+  const users=lu();
+  const u=users.find(x=>x.id===id);
+  if(!confirm(`Delete account for ${u?.name}?`))return;
+  su(users.filter(x=>x.id!==id)); renderAdmin(); toast('User removed','🗑');
+}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+function toast(msg,ic='✅'){
+  const t=document.getElementById('toast');
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-ic').textContent=ic;
+  t.classList.add('on');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('on'),3000);
+}
+
+// ══ AUTO-LOGIN ══
+if(CU) boot();
+</script>
+</body>
+</html>
